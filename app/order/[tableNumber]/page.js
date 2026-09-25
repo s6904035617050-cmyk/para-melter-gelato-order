@@ -53,15 +53,39 @@ export default function OrderPage({ params }) {
     });
   };
 
-  const getTotalItems = () => {
-    return Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+  // คำนวณแยกจำนวนสกู๊ปเจลาโต้ กับ รายการอื่นๆ (ท็อปปิ้ง / ภาชนะ)
+  const getCartSummary = () => {
+    let gelatoScoops = 0;
+    let otherItemsCount = 0;
+
+    Object.entries(cart).forEach(([itemId, qty]) => {
+      const itemObj = items.find((i) => i.id === parseInt(itemId));
+      if (!itemObj) return;
+
+      const categoryObj = categories.find((c) => c.id === itemObj.category_id);
+      const categoryName = categoryObj ? categoryObj.name.toLowerCase() : '';
+
+      // เช็กว่าเป็นหมวดหมู่ไอศกรีม/เจลาโต้ หรือไม่
+      if (
+        categoryName.includes('signatures') ||
+        categoryName.includes('milk') ||
+        categoryName.includes('sorbetto') ||
+        categoryName.includes('gelato') ||
+        categoryName.includes('เจลาโต้') ||
+        categoryName.includes('ไอศกรีม')
+      ) {
+        gelatoScoops += qty;
+      } else {
+        otherItemsCount += qty;
+      }
+    });
+
+    return { gelatoScoops, otherItemsCount, totalCount: gelatoScoops + otherItemsCount };
   };
 
   const handleSubmitOrder = async () => {
-    if (getTotalItems() === 0) {
-      alert('กรุณาเลือกรายการไอศกรีมก่อนสั่งครับ');
-      return;
-    }
+    const { totalCount } = getCartSummary();
+    if (totalCount === 0) return;
 
     setSubmitting(true);
     try {
@@ -95,10 +119,24 @@ export default function OrderPage({ params }) {
     }
   };
 
+  const { gelatoScoops, otherItemsCount, totalCount } = getCartSummary();
+
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: '50px', fontFamily: 'sans-serif', color: '#D53F8C' }}>
-        <h2>🍨 กำลังโหลดเมนูเจลาโต้...</h2>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #FAF7F2 0%, #F5EBE6 100%)',
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        color: '#4A3E3D'
+      }}>
+        <div style={{ fontSize: '32px', marginBottom: '12px' }}>🍨</div>
+        <p style={{ letterSpacing: '2px', textTransform: 'uppercase', fontSize: '12px', fontWeight: '600', opacity: 0.7 }}>
+          Crafting Menu...
+        </p>
       </div>
     );
   }
@@ -106,154 +144,271 @@ export default function OrderPage({ params }) {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#FFF5F5',
-      padding: '16px',
-      paddingBottom: '100px',
-      fontFamily: 'sans-serif'
+      background: 'radial-gradient(circle at 10% 20%, #FFFDF9 0%, #F6EFE9 100%)',
+      padding: '20px 16px',
+      paddingBottom: '120px',
+      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      color: '#2D2424',
+      position: 'relative'
     }}>
-      {/* Header */}
+      {/* Background Decor */}
       <div style={{
-        backgroundColor: '#FFFFFF',
-        borderRadius: '12px',
-        padding: '16px',
-        textAlign: 'center',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-        marginBottom: '20px'
-      }}>
-        <h1 style={{ margin: 0, color: '#D53F8C', fontSize: '1.8rem' }}>🍨 Para-Melter Gelato</h1>
-        <p style={{ margin: '6px 0 0 0', color: '#4A5568', fontWeight: 'bold' }}>
-          โต๊ะที่ {tableNumber}
-        </p>
-      </div>
+        position: 'fixed',
+        top: '-100px',
+        right: '-100px',
+        width: '280px',
+        height: '280px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(235, 185, 179, 0.25) 0%, rgba(255, 255, 255, 0) 70%)',
+        pointerEvents: 'none',
+        zIndex: 0
+      }} />
 
-      {/* แจ้งเตือนเมื่อสั่งสำเร็จ */}
+      {/* Header Container */}
+      <header style={{
+        position: 'relative',
+        zIndex: 1,
+        textAlign: 'center',
+        padding: '24px 20px',
+        marginBottom: '28px',
+        background: 'rgba(255, 255, 255, 0.65)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderRadius: '24px',
+        border: '1px solid rgba(255, 255, 255, 0.8)',
+        boxShadow: '0 8px 32px rgba(180, 150, 140, 0.08)'
+      }}>
+        <span style={{
+          display: 'inline-block',
+          fontSize: '11px',
+          fontWeight: '700',
+          letterSpacing: '2.5px',
+          textTransform: 'uppercase',
+          color: '#A87C74',
+          marginBottom: '6px'
+        }}>
+          Artisanal Gelato
+        </span>
+        <h1 style={{
+          margin: 0,
+          fontSize: '26px',
+          fontWeight: '800',
+          letterSpacing: '-0.5px',
+          background: 'linear-gradient(135deg, #3A2E2B 0%, #6E534E 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent'
+        }}>
+          Para-Melter
+        </h1>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          marginTop: '10px',
+          padding: '4px 14px',
+          background: '#2D2424',
+          color: '#FAF7F2',
+          borderRadius: '100px',
+          fontSize: '12px',
+          fontWeight: '600',
+          letterSpacing: '0.5px'
+        }}>
+          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#88D49E' }}></span>
+          TABLE {tableNumber}
+        </div>
+      </header>
+
+      {/* Success Notification */}
       {orderSuccess && (
         <div style={{
-          backgroundColor: '#C6F6D5',
-          color: '#22543D',
-          padding: '12px',
-          borderRadius: '8px',
-          marginBottom: '16px',
+          position: 'relative',
+          zIndex: 1,
+          padding: '16px 20px',
+          borderRadius: '16px',
+          background: 'rgba(235, 247, 238, 0.9)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(136, 212, 158, 0.3)',
+          color: '#275232',
           textAlign: 'center',
-          fontWeight: 'bold'
+          fontSize: '14px',
+          fontWeight: '600',
+          marginBottom: '24px',
+          boxShadow: '0 4px 20px rgba(136, 212, 158, 0.15)'
         }}>
-          ✅ ส่งออเดอร์ไปที่บาร์ตักเรียบร้อยแล้วครับ!
+          ✨ ส่งรายการตักเจลาโต้เรียบร้อยแล้วครับ!
         </div>
       )}
 
-      {/* รายการเมนูแบ่งตามหมวดหมู่ */}
-      {categories.map((cat) => {
-        const categoryItems = items.filter((item) => item.category_id === cat.id);
-        if (categoryItems.length === 0) return null;
+      {/* Menu Categories */}
+      <main style={{ position: 'relative', zIndex: 1 }}>
+        {categories.map((cat) => {
+          const categoryItems = items.filter((item) => item.category_id === cat.id);
+          if (categoryItems.length === 0) return null;
 
-        return (
-          <div key={cat.id} style={{ marginBottom: '24px' }}>
-            <h2 style={{
-              color: '#319795',
-              fontSize: '1.2rem',
-              borderBottom: '2px solid #E2E8F0',
-              paddingBottom: '6px',
-              marginBottom: '12px'
-            }}>
-              {cat.name}
-            </h2>
+          return (
+            <section key={cat.id} style={{ marginBottom: '32px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                marginBottom: '16px'
+              }}>
+                <h2 style={{
+                  margin: 0,
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  letterSpacing: '0.5px',
+                  color: '#5C4A47',
+                  textTransform: 'uppercase'
+                }}>
+                  {cat.name}
+                </h2>
+                <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, #E2D7CF 0%, rgba(226, 215, 207, 0) 100%)' }} />
+              </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {categoryItems.map((item) => {
-                const qty = cart[item.id] || 0;
-                return (
-                  <div key={item.id} style={{
-                    backgroundColor: '#FFFFFF',
-                    borderRadius: '10px',
-                    padding: '12px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.05)'
-                  }}>
-                    <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#2D3748' }}>
-                      {item.name}
-                    </span>
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {categoryItems.map((item) => {
+                  const qty = cart[item.id] || 0;
+                  const isSelected = qty > 0;
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      {qty > 0 && (
-                        <>
-                          <button
-                            onClick={() => updateQuantity(item.id, -1)}
-                            style={{
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '50%',
-                              border: 'none',
-                              backgroundColor: '#E2E8F0',
-                              fontSize: '18px',
-                              fontWeight: 'bold',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            -
-                          </button>
-                          <span style={{ fontWeight: 'bold', minWidth: '20px', textAlign: 'center' }}>
-                            {qty}
-                          </span>
-                        </>
-                      )}
-                      <button
-                        onClick={() => updateQuantity(item.id, 1)}
-                        style={{
-                          width: '32px',
-                          height: '32px',
-                          borderRadius: '50%',
-                          border: 'none',
-                          backgroundColor: '#ED64A6',
-                          color: 'white',
-                          fontSize: '18px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        +
-                      </button>
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        padding: '16px 18px',
+                        borderRadius: '18px',
+                        background: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.55)',
+                        backdropFilter: 'blur(10px)',
+                        border: isSelected ? '1px solid #C9A99B' : '1px solid rgba(255, 255, 255, 0.7)',
+                        boxShadow: isSelected 
+                          ? '0 8px 24px rgba(168, 124, 116, 0.12)' 
+                          : '0 2px 8px rgba(0, 0, 0, 0.02)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.25s ease'
+                      }}
+                    >
+                      <span style={{
+                        fontSize: '15px',
+                        fontWeight: '600',
+                        color: '#2D2424'
+                      }}>
+                        {item.name}
+                      </span>
+
+                      {/* Quantity Selector */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {qty > 0 && (
+                          <>
+                            <button
+                              onClick={() => updateQuantity(item.id, -1)}
+                              style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '12px',
+                                border: 'none',
+                                background: '#F0E8E1',
+                                color: '#5C4A47',
+                                fontSize: '18px',
+                                fontWeight: '500',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                            >
+                              -
+                            </button>
+                            <span style={{
+                              minWidth: '24px',
+                              textAlign: 'center',
+                              fontSize: '15px',
+                              fontWeight: '700',
+                              color: '#2D2424'
+                            }}>
+                              {qty}
+                            </span>
+                          </>
+                        )}
+                        <button
+                          onClick={() => updateQuantity(item.id, 1)}
+                          style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: isSelected ? '#2D2424' : '#E8DDD5',
+                            color: isSelected ? '#FAF7F2' : '#5C4A47',
+                            fontSize: '18px',
+                            fontWeight: '500',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </main>
 
-      {/* แถบกดส่งออเดอร์ด้านล่างสุด */}
-      {getTotalItems() > 0 && (
+      {/* Floating Bottom Action Bar */}
+      {totalCount > 0 && (
         <div style={{
           position: 'fixed',
-          bottom: '0',
-          left: '0',
-          right: '0',
-          backgroundColor: '#FFFFFF',
-          padding: '16px',
-          boxShadow: '0 -4px 12px rgba(0,0,0,0.1)',
+          bottom: '20px',
+          left: '16px',
+          right: '16px',
+          zIndex: 10,
+          background: 'rgba(45, 36, 36, 0.92)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: '24px',
+          padding: '12px 16px 12px 20px',
           display: 'flex',
+          alignItems: 'center',
           justifyContent: 'space-between',
-          alignItems: 'center'
+          boxShadow: '0 12px 32px rgba(45, 36, 36, 0.25)',
+          border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
           <div>
-            <span style={{ color: '#718096', fontSize: '14px' }}>รวมทั้งหมด: </span>
-            <strong style={{ color: '#D53F8C', fontSize: '18px' }}>{getTotalItems()} สกู๊ป/รายการ</strong>
+            <div style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', color: '#A89F91' }}>
+              สรุปรายการ
+            </div>
+            <div style={{ fontSize: '14px', fontWeight: '700', color: '#FAF7F2', marginTop: '2px' }}>
+              {gelatoScoops > 0 && <span>🍨 {gelatoScoops} สกู๊ป </span>}
+              {otherItemsCount > 0 && (
+                <span style={{ fontSize: '13px', fontWeight: '400', color: '#D4C5B9' }}>
+                  {gelatoScoops > 0 ? '| ' : ''}➕ {otherItemsCount} รายการ
+                </span>
+              )}
+            </div>
           </div>
 
           <button
             onClick={handleSubmitOrder}
             disabled={submitting}
             style={{
-              padding: '12px 24px',
-              backgroundColor: submitting ? '#A0AEC0' : '#ED64A6',
-              color: 'white',
+              padding: '12px 22px',
+              borderRadius: '16px',
               border: 'none',
-              borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              cursor: submitting ? 'not-allowed' : 'pointer'
+              background: 'linear-gradient(135deg, #E8A89C 0%, #C97D6F 100%)',
+              color: '#FFFFFF',
+              fontSize: '14px',
+              fontWeight: '700',
+              letterSpacing: '0.5px',
+              cursor: submitting ? 'not-allowed' : 'pointer',
+              boxShadow: '0 4px 16px rgba(201, 125, 111, 0.3)',
+              opacity: submitting ? 0.7 : 1
             }}
           >
             {submitting ? 'กำลังส่ง...' : 'ส่งออเดอร์ 🍨'}
