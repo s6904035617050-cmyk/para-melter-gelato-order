@@ -38,7 +38,7 @@ export default function GenerateQR() {
       if (error) throw error;
 
       // สร้าง URL สำหรับสั่งอาหาร
-      const orderUrl = `${window.location.origin}/order/${tableNumber}?session_id=${data.id}`;
+      const orderUrl = `https://para-melter-gelato-order.vercel.app/order/${tableNumber}?session_id=${data.id}`;
       setSessionData({ ...data, orderUrl });
     } catch (err) {
       alert('เกิดข้อผิดพลาด: ' + err.message);
