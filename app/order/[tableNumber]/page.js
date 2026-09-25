@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '../../../lib/supabaseClient';
 
 export default function OrderPage({ params }) {
-  const resolvedParams = use(params);
-  const tableNumber = resolvedParams.tableNumber;
+  const tableNumber = params?.tableNumber;
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
 
